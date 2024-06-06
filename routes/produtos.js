@@ -9,14 +9,17 @@ router.get('/', (req, res, next) => {
         if (error) {
             return res.status(500).send({ error: error });
         }
+        if(resultado.lenght == 0){
+            return res.status(404).send({
+                mensagem: "Não foi encontrado produto com este ID"
+            })
+        }
         conn.query(
             'SELECT * FROM produtos WHERE id_produto = ?;',
             [id_produto],
-            (error, resultado, fields) => {
+            (error, result, fields) => {
                 conn.release(); 
-                if (error) {
-                    return res.status(500).send({ error: error });
-                }
+                if (error) {return res.status(500).send({error:error }) }
                 const response = {
                     quantidade: resultado.length,
                     produtos: resultado.map(prod => {
@@ -26,7 +29,7 @@ router.get('/', (req, res, next) => {
                             preco: prod.preco,
                             request: {
                                 tipo: 'GET',
-                                descricao: '',
+                                descricao: 'Retorna todos os produtos',
                                 url: 'http://localhost:3000/produtos/' + prod.id_produto
                             }
                         };
@@ -49,7 +52,20 @@ router.post('/', (req, res, next) => {
             (error, resultado, field) => {
                 conn.release();      
                 if (error) {return res.status(500).send ({ error: error})}
+                const response = {
+                    mensagem: 'Produto inserido com sucesso',
+                    produtoCriado:{
+                        id_produto: resultado.id_produto,
+                        nome: req.body.nome,
+                        preco: req.body.preco,
+                        request: {
+                            tipo: 'POST',
+                            descricao: 'Insere um produto',
+                            url: 'http://localhost:3000/produtos/' + prod.id_produto
 
+                        }
+                    }
+                }
                 
                 res.status(201).send({
                     mensagem: 'Produto inserido com sucesso',
