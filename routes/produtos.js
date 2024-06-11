@@ -1,10 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const mysql = require('../mysql').pool;
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb){
+        cb(null, './uploads/')
+    },
+    filename: function(req, file, cb){
+        let data = new Date().toISOString().replace(/:/g, '-') + '-';
+        cb(null, data + file.originalname );    }
+});
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
+        cb(null, true);
+    }else{
+        cb(null, false);
+    }
+    
+}
+
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5
+    },
+    fileFilter: fileFilter 
+});
 
 // RETORNA TODOS OS PRODUTOS
 router.get('/', (req, res, next) => {
-    const id_produto = req.query.id_produto; 
     mysql.getConnection((error, conn) => {
         if (error) {
             return res.status(500).send({ error: error }) }
@@ -14,8 +40,8 @@ router.get('/', (req, res, next) => {
                 conn.release(); 
                 if (error) {return res.status(500).send({error:error }) }
                 const response = {
-                    quantidade: resultado.length,
-                    produtos: resultado.map(prod => {
+                    quantidade: result.length,
+                    produtos: result.map(prod => {
                         return {
                             id_produto: prod.id_produto,
                             nome: prod.nome,
@@ -35,8 +61,8 @@ router.get('/', (req, res, next) => {
 });
 
 // INSERE UM PRODUTO
-router.post('/', (req, res, next) => {
-    
+router.post('/', upload.single('produto_imagem'), (req, res, next) => {
+    console.log(req.file)
     mysql.getConnection((error, conn) => {
         if (error) {return res.status(500).send ({ error: error})}
         conn.query(
@@ -48,7 +74,7 @@ router.post('/', (req, res, next) => {
                 const response = {
                     mensagem: 'Produto inserido com sucesso',
                     produtoCriado:{
-                        id_produto: resultado.id_produto,
+                        id_produto: req.body.id_produto,
                         nome: req.body.nome,
                         preco: req.body.preco,
                         request: {
@@ -78,7 +104,6 @@ router.get('/:id_produto', (req, res, next) => {
             (error, result, field) => {
                 conn.release();      
                 if (error) {return res.status(500).send ({ error: error})}
-
                 if (result.lenght == 0){
                     return res.status(404).send({
                         mensagem: 'Não foi encontrado produto com esse ID'
@@ -92,7 +117,7 @@ router.get('/:id_produto', (req, res, next) => {
                         request: {
                             tipo: 'GET',
                             descricao: 'Retorna um produto',
-                            url: 'http://localhost:3000/produtos' + req.body.id_produto
+                            url: 'http://localhost:3000/produtos'
 
                         }
                     }
