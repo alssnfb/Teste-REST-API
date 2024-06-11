@@ -30,7 +30,7 @@ router.get('/', (req, res, next) => {
                             request: {
                                 tipo: 'GET',
                                 descricao: 'Retorna todos os produtos',
-                                url: 'http://localhost:3000/produtos/' + prod.id_produto
+                                url: 'http://localhost:3000/produtos' + req.body.id_produto
                             }
                         };
                     })
@@ -61,16 +61,13 @@ router.post('/', (req, res, next) => {
                         request: {
                             tipo: 'POST',
                             descricao: 'Insere um produto',
-                            url: 'http://localhost:3000/produtos/' + prod.id_produto
+                            url: 'http://localhost:3000/produtos' + req.body.id_produto
 
                         }
                     }
                 }
                 
-                res.status(201).send({
-                    mensagem: 'Produto inserido com sucesso',
-                    id_produto: resultado.insertId
-                });
+                res.status(201).send(response);
             }
         )
     });
@@ -107,14 +104,24 @@ router.patch('/', (req, res, next) => {
                 req.body.preco, 
                 req.body.id_produto
             ],
-            (error, resultado, field) => {
+            (error, result, field) => {
                 conn.release();      
                 if (error) {return res.status(500).send ({ error: error})}
+                const response = {
+                    mensagem: 'Produto atualizado com sucesso',
+                    produtoAtualizado:{
+                        id_produto: req.body.id_produto,
+                        nome: req.body.nome,
+                        preco: req.body.preco,
+                        request: {
+                            tipo: 'PATCH',
+                            descricao: 'Altera um produto específico',
+                            url: 'http://localhost:3000/produtos/' + req.body.id_produto
 
-                
-                res.status(202).send({
-                    mensagem: 'Produto alterado com sucesso',
-                });
+                        }
+                    }
+                }
+                res.status(202).send(response);      
             }
         )
     });
