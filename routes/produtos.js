@@ -66,8 +66,8 @@ router.post('/', upload.single('produto_imagem'), (req, res, next) => {
     mysql.getConnection((error, conn) => {
         if (error) {return res.status(500).send ({ error: error})}
         conn.query(
-            'INSERT INTO PRODUTOS (nome, preco) VALUES (?,?)',
-            [req.body.nome, req.body.preco],
+            'INSERT INTO PRODUTOS (nome, preco, imagem_produto) VALUES (?,?, ?)',
+            [req.body.nome, req.body.preco, req.file.path],
             (error, resultado, field) => {
                 conn.release();      
                 if (error) {return res.status(500).send ({ error: error})}
@@ -77,6 +77,7 @@ router.post('/', upload.single('produto_imagem'), (req, res, next) => {
                         id_produto: req.body.id_produto,
                         nome: req.body.nome,
                         preco: req.body.preco,
+                        imagem_produto: req.file.path,
                         request: {
                             tipo: 'POST',
                             descricao: 'Insere um produto',
