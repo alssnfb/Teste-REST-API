@@ -1,4 +1,7 @@
 const mysql = require('../mysql').pool;
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 
 exports.usuarioCadastro =  (req, res, next) => {
     mysql.getConnection((error, conn) => {
